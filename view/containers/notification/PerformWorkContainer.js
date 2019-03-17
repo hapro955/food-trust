@@ -16,7 +16,7 @@ import String from "../../../res/Strings";
 import Color from "../../../res/Colors";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { ImagePicker, Permissions } from "expo";
-import { uploadImage } from "../../../data/services/VfscApi";
+import { uploadImage, createWorkflow } from "../../../data/services/VfscApi";
 import TokenLocal from "../../../data/local/TokenLocal";
 
 const height = Dimensions.get("window").height;
@@ -39,7 +39,7 @@ export default class PerformWorkContainer extends Component {
       headerLeft: (
         <TouchableOpacity
           style={{ marginLeft: 20 }}
-          hitSlop={{ top: 15, left: 15, bottom: 15, right: 15 }}
+          hitSlop={{ top: 25, left: 25, bottom: 25, right: 25 }}
           onPress={navigation.getParam("goBack")}
         >
           <Icon name="chevron-left" size={15} color={Color.textWhite} />
@@ -57,6 +57,7 @@ export default class PerformWorkContainer extends Component {
       contentDone: ""
     };
     console.log("perform work");
+    console.log(333, this.props.navigation.state.params);
   }
 
   async componentWillMount() {}
@@ -70,12 +71,15 @@ export default class PerformWorkContainer extends Component {
   };
 
   _takePicture = async () => {
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      quality: 0.1
-    });
-    if (!result.cancelled) {
-      console.log(33333, result);
+    const { status } = await Permissions.askAsync( Permissions.CAMERA);
+		if(status === 'granted' ) {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        quality: 0.1
+      });
+      if (!result.cancelled) {
+        console.log(33333, result);
+      }
     }
   };
 
@@ -83,9 +87,7 @@ export default class PerformWorkContainer extends Component {
     const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
     if (status === "granted") {
       this._pickFile();
-    } else {
-      alert("permission denied: " + status);
-    }
+    } 
   };
 
   _handleUriImage = (result) => {
@@ -159,44 +161,72 @@ export default class PerformWorkContainer extends Component {
     );
   }
 
-  createFormData = photo => {
+  createFormData = (photos) => {
     const formData = new FormData();
-    formData.append("files", {
-      uri: localUri,
-      name: localName,
-      type: localType
+    photos.forEach(function(photo) {
+      formData.append("files", photo);
     });
-    return data;
+    return formData;
   };
+
+_handleWork = async (result) => {
+  let accessToken = "";
+  await TokenLocal.getAccessToken().then(data => {
+    accessToken = data;
+  });
+  let {item} = this.props.navigation.state.params;
+  let planId = item.planId;
+  let notifyId = null;
+  let workId = null;
+  let periodId = null;
+  if(item.notify != null) {
+    notifyId = item.notify.id;
+  }else if(item.period != null) {
+    periodId = item.period.id;
+  }else if(item.work != null) {
+    workId = item.work.id;
+  }
+  let metadata = result;
+  let workflow = Object.assign({
+    "planId": planId,
+    "notifyId": notifyId,
+    "periodId": periodId,
+    "workId": workId,
+    "metadata": metadata
+  });
+
+  let resultWorkflow = await createWorkflow(workflow, accessToken);
+  console.log(898989, resultWorkflow);
+}
 
   _handleFinish = async () => {
     let accessToken = "";
     await TokenLocal.getAccessToken().then(data => {
       accessToken = data;
     });
-    console.log(2222, this.state.imageSource);
+  
+    let body = this.createFormData(this.state.imageSource);
 
-    if (!result.cancelled) {
-      let accessToken = "";
-      await TokenLocal.getAccessToken().then(data => {
-        accessToken = data;
+    let result = await uploadImage(body, accessToken);
+    let ids = [];
+    if(result && result.length > 0) {
+      result.forEach(function(item){
+        ids.push(item.id);
       });
-      
-      console.log("uri form data:", localUri);
-
-      const formData = new FormData();
-      formData.append("files", {
-        uri: localUri,
-        name: localName,
-        type: localType
-      });
-
-      uploadImage(formData, accessToken);
     }
+    this._handleWork(ids);
+
   };
 
-  _handleCamera = () => {
-    this.props.navigation.navigate("Camera");
+  _handleCamera = async () => {
+    const { status } = await Permissions.askAsync( Permissions.CAMERA);
+		 if(status === 'granted' ){
+      const { status } = await Permissions.askAsync( Permissions.AUDIO_RECORDING);
+      if(status === 'granted' ){
+        this.props.navigation.navigate("Camera");
+      }
+     }
+    
   }
 
   render() {

@@ -15,7 +15,7 @@ export default class CameraWork extends Component {
   }
     
   async componentWillMount() {
-		const { status } = await Permissions.askAsync( Permissions.CAMERA);
+		const { status } = await Permissions.getAsync( Permissions.CAMERA);
 		this.setState( { hasCameraPermission: status === 'granted' });
 	}
 	

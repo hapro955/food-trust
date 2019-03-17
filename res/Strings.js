@@ -63,4 +63,5 @@ export default {
     amount: "Số lượng",
     using: "Sử dụng",
     detail: "Chi tiết",
+    chooseProductionPlan: "Chọn kết hoạch sản xuất",
 }

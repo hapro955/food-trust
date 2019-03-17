@@ -8,6 +8,8 @@ import {
   workDoneUrl,
   suppliesUrl,
   uploadMetadataUrl,
+  useSuppliesUrl,
+  createWorkflowUrl
 } from "./VfscUrl";
 function getDefaultHeader() { 
   let defaultHeader = {
@@ -85,10 +87,32 @@ async function postAccessToken(url, body, accessToken) {
     let response = await fetch(url, {
       method: "POST",
       headers: {
-        Authorization: "Bearer " + accessToken
+        Authorization: "Bearer " + accessToken,
+        "Content-Type": "application/json"
       },
-      body: body
+      body:  JSON.stringify(body)
     });
+    
+    let responseJson = await response.json();
+    console.log("responseJson", responseJson);
+    return responseJson;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function postFile(url, body, accessToken) {
+  try {
+    let response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + accessToken,
+        "Content-Type": "multipart/form-data",
+
+      },
+      body:  body
+    });
+    
     let responseJson = await response.json();
     return responseJson;
   } catch (error) {
@@ -97,7 +121,7 @@ async function postAccessToken(url, body, accessToken) {
 }
 
 async function uploadImage(body, accessToken) {
-  let imageUpload = await postAccessToken(uploadMetadataUrl, body, accessToken);
+  let imageUpload = await postFile(uploadMetadataUrl, body, accessToken);
   return imageUpload;
 }
 
@@ -136,6 +160,16 @@ async function remindWork(accessToken) {
   return remindWork;
 }
 
+async function postListUseSupplies(body, accessToken) {
+  let useSupplies = await postAccessToken(useSuppliesUrl, body, accessToken);
+  return useSupplies;
+}
+
+async function createWorkflow(body, accessToken) {
+  let createWorkflow = await postAccessToken(createWorkflowUrl, body, accessToken);
+  return createWorkflow;
+}
+
 module.exports = {
   loginApi: loginApi,
   getPublicUser: getPublicUser,
@@ -145,4 +179,6 @@ module.exports = {
   changePassword: changePassword,
   getWorkDone: getWorkDone,
   getSupplies: getSupplies,
+  postListUseSupplies: postListUseSupplies,
+  createWorkflow: createWorkflow,
 };

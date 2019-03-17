@@ -1,4 +1,5 @@
-export const baseUrl = "http://14.160.32.79:5005";
+export const baseUrl = "http://192.168.1.4:5005";
+export const listPlans = "/farmer/plans";
 export const loginUrl = baseUrl + "/auth/signin";
 export const userPublicUrl = baseUrl + "/public/user";
 export const notificationUrl = baseUrl + "/farmer/notifications";
@@ -7,3 +8,5 @@ export const changePasswordUrl = baseUrl + "/public/user/newpwd/";
 export const workDoneUrl = baseUrl + "/farmer/workflows/page/";
 export const suppliesUrl = baseUrl + "/farmer/inventory/materials";
 export const uploadMetadataUrl = baseUrl + "/farmer/metadatas/upload";
+export const useSuppliesUrl = baseUrl + "/farmer/materials/outlist/using";
+export const createWorkflowUrl = baseUrl +"/farmer/workflow";

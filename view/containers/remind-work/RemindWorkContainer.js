@@ -10,7 +10,9 @@ import {
   FlatList,
   TextInput,
   ActivityIndicator,
-  Image
+  Image,
+  Picker,
+  Button
 } from "react-native";
 import String from "../../../res/Strings";
 import Color from "../../../res/Colors";
@@ -23,10 +25,12 @@ import {
   remindWork,
   getNotification,
   getWorkDone,
-  getSupplies
+  getSupplies,
+  postListUseSupplies
 } from "../../../data/services/VfscApi";
 import TokenLocal from "../../../data/local/TokenLocal";
 import { baseUrl } from "../../../data/services/VfscUrl";
+import { FileSystem, Permissions } from "expo";
 
 const width = Dimensions.get("window").width;
 
@@ -49,7 +53,7 @@ export default class RemindWorkContainer extends Component {
       headerRight: (
         <TouchableOpacity
           style={{ marginRight: 20 }}
-          hitSlop={{ top: 15, left: 15, bottom: 15, right: 15 }}
+          hitSlop={{ top: 25, left: 25, bottom: 25, right: 25 }}
           onPress={navigation.getParam("goHome")}
         >
           <Icon name="bars" size={15} color={Color.textWhite} />
@@ -68,7 +72,8 @@ export default class RemindWorkContainer extends Component {
       supplies: [],
       isLoading: false,
       showSeemore: true,
-      textInputs: []
+      textInputs: [],
+      PickerValueHolder: ""
     };
     this.page = 0;
   }
@@ -84,8 +89,9 @@ export default class RemindWorkContainer extends Component {
     });
     let remindWork = await this._getRemindWork(accessToken);
     let notification = await this._getNotification(accessToken);
-    let workDone = await this._getWorkDone(accessToken, this.page, 1);
+    let workDone = await this._getWorkDone(accessToken, this.page, 5);
     let supplies = await this._getSupplies(accessToken);
+    console.log(5555, supplies);
     this.totalElements = workDone.totalElements;
     this.setState({
       remindWork: remindWork,
@@ -94,6 +100,10 @@ export default class RemindWorkContainer extends Component {
       supplies: supplies
     });
   }
+
+  GetSelectedPickerItem = () => {
+    Alert.alert(this.state.PickerValueHolder);
+  };
 
   _getSupplies = async accessToken => {
     return await getSupplies(accessToken);
@@ -346,15 +356,26 @@ export default class RemindWorkContainer extends Component {
               style={{ width: "100%" }}
               horizontal={true}
               data={item.metadata}
-              renderItem={item => {
-                console.log(111, item);
+              renderItem={items => {
+                let item = items.item;
+          
+                let isImage = item.filetype && item.filetype.indexOf("image") == 0 ;
+               
                 return (
-                  <View style={{ marginRight: 10 }}>
-                    <Image
-                      source={{ uri: baseUrl + item.url }}
-                      style={{ height: 50, width: 50 }}
-                    />
-                  </View>
+                  <TouchableOpacity 
+                    onPress={() => {
+   
+                      this._handleDowloadFile(item);
+                    }}
+                    style={{ marginRight: 10 }}>
+                    <View style={{}}>
+                      {isImage ? (
+                          <Icon name="image" size={40} color={Color.bgTabBar} />                        
+                      ) : (
+                        <Icon name="video" size={40} color={Color.bgTabBar} />
+                      )}
+                    </View>
+                  </TouchableOpacity>
                 );
               }}
               keyExtractor={(item, index) => `item-image-${index}`}
@@ -364,6 +385,22 @@ export default class RemindWorkContainer extends Component {
       </View>
     );
   };
+
+  _handleDowloadFile = async (item) => {
+    let uri = baseUrl + item.url;
+    let fileName = FileSystem.cacheDirectory +  item.filename;
+
+    const { status } = await Permissions.askAsync( Permissions.CAMERA_ROLL);
+		if(status === 'granted' ) {
+      FileSystem.downloadAsync(uri, fileName).then(
+        ({uri}) => {
+          console.log(6666, uri);
+        }
+      ).catch(error => {
+        console.log(error);
+      })
+    }
+  }
 
   _renderFooterWorkDone() {
     return (
@@ -489,7 +526,7 @@ export default class RemindWorkContainer extends Component {
 
   _renderSupplies() {
     return (
-      <ScrollView
+      <View
         style={{ width: "100%", height: "100%", backgroundColor: "#F1F1F1" }}
         tabLabel="Kho"
       >
@@ -532,7 +569,6 @@ export default class RemindWorkContainer extends Component {
             </View>
           </View>
           {this.state.supplies.map((item, index) => {
-            console.log("hans item", item);
             return (
               <View
                 key={index}
@@ -562,14 +598,14 @@ export default class RemindWorkContainer extends Component {
                   </View>
                   <View style={[{ flex: 2 }, styles.supplies]}>
                     <TextInput
-                      value={this.state.textInputs[index]}
                       onChangeText={text => {
-                        console.log("hans index", index);
                         let { textInputs } = this.state;
-                        textInputs[index] = Object.assign({
-                          value: text,
-                          id: item.id
-                        });
+                        textInputs[index] = {
+                          quantity: parseInt(text),
+                          id: item.id,
+                          unitId: item.unitId,
+                          warehouseId: item.warehouseId
+                        };
                         this.setState({
                           textInputs
                         });
@@ -590,15 +626,38 @@ export default class RemindWorkContainer extends Component {
               </View>
             );
           })}
-          <View style={{ 
-            width: "100%", 
-            marginTop: 20,
-            justifyContent: "center",
-            alignItems: "center" 
-            }}>
+          <TouchableOpacity
+            style={{
+              width: "96%", 
+              height: 50,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderWidth: 1,
+              borderColor: Color.bdBrow,
+              marginTop: 20,
+              borderRadius: 4
+            }}
+          >
+            <View>
+              <Text>
+                  {String.chooseProductionPlan}
+              </Text>
+            </View>
+
+            <Icon name="chevron-down" size={15} color={Color.textBlack} />
+          </TouchableOpacity>
+          <View
+            style={{
+              width: "100%",
+              marginTop: 20,
+              justifyContent: "center",
+              alignItems: "center"
+            }}
+          >
             <TouchableOpacity
               onPress={this._handleConfirmUseOfSupplies}
-              style={{ 
+              style={{
                 width: "70%",
                 height: 40,
                 backgroundColor: Color.bgTabBar,
@@ -609,22 +668,39 @@ export default class RemindWorkContainer extends Component {
                 alignItems: "center"
               }}
             >
-              <Text style={{fontSize: 13, fontWeight: "bold", color: Color.textWhite}}>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "bold",
+                  color: Color.textWhite
+                }}
+              >
                 {String.confirm}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+      </View>
     );
   }
 
-  _handleConfirmUseOfSupplies = () => {
-
-  }
+  _handleConfirmUseOfSupplies = async () => {
+    let accessToken = "";
+    await TokenLocal.getAccessToken().then(data => {
+      accessToken = data;
+    });
+    let listUseSupplies = [];
+    for (let i = 0; i < this.state.textInputs.length; i++) {
+      if (this.state.textInputs[i] != undefined) {
+        if (parseInt(this.state.textInputs[i].quantity) > 0) {
+          listUseSupplies.push(this.state.textInputs[i]);
+        }
+      }
+    }
+    let useSupplies = await postListUseSupplies(listUseSupplies, accessToken);
+  };
 
   render() {
-    console.log(222222, this.state.textInputs);
     return (
       <View style={styles.container}>
         <StatusBar barStyle="dark-content" />
