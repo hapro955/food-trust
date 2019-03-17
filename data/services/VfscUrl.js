@@ -1,0 +1,9 @@
+export const baseUrl = "http://14.160.32.79:5005";
+export const loginUrl = baseUrl + "/auth/signin";
+export const userPublicUrl = baseUrl + "/public/user";
+export const notificationUrl = baseUrl + "/farmer/notifications";
+export const getTodayTasksUrl = baseUrl +"/farmer/workflows";
+export const changePasswordUrl = baseUrl + "/public/user/newpwd/";
+export const workDoneUrl = baseUrl + "/farmer/workflows/page/";
+export const suppliesUrl = baseUrl + "/farmer/inventory/materials";
+export const uploadMetadataUrl = baseUrl + "/farmer/metadatas/upload";
