@@ -16,8 +16,19 @@ export default class WelcomeContainer extends React.Component{
             });
             if(accessToken) {
                 let user = await getPublicUser(accessToken)
-                if(user != undefined && user.roles != undefined && user.roles[0] !== undefined && user.roles[0] === "ROLE_FARMER") {
-                    this.props.navigation.navigate('RemindWork');
+                if(user != undefined && user.roles != undefined && user.roles[0] !== undefined) {
+                    if(user.roles[0] === "ROLE_FARMER") {
+                        this.props.navigation.navigate('RemindWork');
+                    }else if(
+                        user.roles[0] === "ROLE_ORG" ||
+                        user.roles[0] === "ROLE_VFSC" ||
+                        user.roles[0] === "ROLE_GOV" ||
+                        user.roles[0] === "ROLE_CITY" ||
+                        user.roles[0] === "ROLE_DIST" 
+                    ) {
+                        this.props.navigation.navigate('Chart');
+                    }
+                    
                 } else {
                     this.props.navigation.navigate('Login');
                 }

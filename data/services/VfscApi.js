@@ -9,7 +9,12 @@ import {
   suppliesUrl,
   uploadMetadataUrl,
   useSuppliesUrl,
-  createWorkflowUrl
+  createWorkflowUrl,
+  quantityVfscUrl,
+  quantityGovUrl,
+  quantityOrgUrl,
+  listPlansUrl,
+  plansUrl
 } from "./VfscUrl";
 function getDefaultHeader() { 
   let defaultHeader = {
@@ -39,6 +44,21 @@ async function post(url, body) {
 async function get(url, accessToken) {
   try {
     let response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + accessToken
+      }
+    });
+    let responseJson = await response.json();
+    return responseJson;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function getWithDate(url, fromDate, toDate, accessToken) {
+  try {
+    let response = await fetch(url + "/" + fromDate +"/" + toDate, {
       method: "GET",
       headers: {
         Authorization: "Bearer " + accessToken
@@ -120,6 +140,24 @@ async function postFile(url, body, accessToken) {
   }
 }
 
+async function getId(url, id, accessToken) {
+  try {
+    console.log(22222, url + "/" + id);
+    console.log(4444, accessToken);
+    let response = await fetch(url + "/" + id, {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + accessToken,
+      },
+    });
+    
+    let responseJson = await response.json();
+    return responseJson;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 async function uploadImage(body, accessToken) {
   let imageUpload = await postFile(uploadMetadataUrl, body, accessToken);
   return imageUpload;
@@ -170,6 +208,31 @@ async function createWorkflow(body, accessToken) {
   return createWorkflow;
 }
 
+async function getQuantityVfsc(fromDate, toDate, accessToken) {
+  let quantityVfsc = await getWithDate(quantityVfscUrl, fromDate, toDate, accessToken);
+  return quantityVfsc;
+}
+
+async function getQuantityGov(fromDate, toDate, accessToken) {
+  let quantityGov = await getWithDate(quantityGovUrl, fromDate, toDate, accessToken);
+  return quantityGov;
+}
+
+async function getQuantityOrg(fromDate, toDate, accessToken) {
+  let quantityOrg = await getWithDate(quantityOrgUrl, fromDate, toDate, accessToken);
+  return quantityOrg;
+}
+
+async function getListPlans(accessToken) {
+  let listPlan = await get(listPlansUrl, accessToken); 
+  return listPlan;
+}
+
+async function getPlan(id, accessToken) {
+  let plan = await getId(plansUrl, id, accessToken);
+  return plan;
+} 
+
 module.exports = {
   loginApi: loginApi,
   getPublicUser: getPublicUser,
@@ -181,4 +244,9 @@ module.exports = {
   getSupplies: getSupplies,
   postListUseSupplies: postListUseSupplies,
   createWorkflow: createWorkflow,
+  getQuantityVfsc: getQuantityVfsc,
+  getQuantityGov: getQuantityGov,
+  getQuantityOrg: getQuantityOrg,
+  getListPlans: getListPlans,
+  getPlan: getPlan,
 };

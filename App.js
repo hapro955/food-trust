@@ -20,6 +20,9 @@ import PerformWorkContainer from './view/containers/notification/PerformWorkCont
 //profile
 import ProfileContainer from './view/containers/profile/ProfileContainer';
 
+//chart
+import ChartContainer from './view/containers/chart/ChartContainer';
+
 import Menu from './view/containers/Menu';
 import CameraWork from './view/containers/camera/CameraWork';
 
@@ -36,6 +39,7 @@ const AppNavigator = createStackNavigator(
     Profile: {screen: ProfileContainer},
     ChangePassword: {screen: ChangePasswordContainer},
     Camera: {screen: CameraWork},
+    Chart: {screen: ChartContainer}
   },
   {
     initialRouteName: 'Welcome'    

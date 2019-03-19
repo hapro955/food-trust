@@ -78,7 +78,12 @@ export default class PerformWorkContainer extends Component {
         quality: 0.1
       });
       if (!result.cancelled) {
-        console.log(33333, result);
+        console.log("when chup anh", result);
+        let imageSource = this.state.imageSource;
+        imageSource.push(this._handleUriImage(result));
+        this.setState({
+          imageSource: imageSource
+        });
       }
     }
   };
@@ -106,6 +111,7 @@ export default class PerformWorkContainer extends Component {
       allowsEditing: true,
       aspect: [4, 3]
     });
+    console.log("when select file", result);
     let imageSource = this.state.imageSource;
     imageSource.push(this._handleUriImage(result));
     this.setState({
@@ -223,10 +229,17 @@ _handleWork = async (result) => {
 		 if(status === 'granted' ){
       const { status } = await Permissions.askAsync( Permissions.AUDIO_RECORDING);
       if(status === 'granted' ){
-        this.props.navigation.navigate("Camera");
+        this.props.navigation.navigate("Camera", {_handleGetVieoFromCamera: this._handleGetVieoFromCamera.bind(this)});
       }
      }
     
+  }
+
+  _handleGetVieoFromCamera = (videoUri) => {
+    console.log("lay duoc du lieu", videoUri);
+    // this.setState({
+    //   videoSource: videoUri
+    // });
   }
 
   render() {

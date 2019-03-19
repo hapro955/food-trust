@@ -67,8 +67,15 @@ export default class LoginContainer extends Component {
 
       if (accessToken !== "") {
         let user = await getPublicUser(accessToken);
-        if (user.roles[0] !== undefined && user.roles[0] === "ROLE_FARMER") {
-          this.props.navigation.navigate("RemindWork");
+        if (user.roles[0] !== undefined) {
+          if(user.roles[0] === "ROLE_FARMER") {
+            this.props.navigation.navigate("RemindWork");
+          }else if(
+            user.roles[0] === "ROLE_ORG" ||
+            user.roles[0] === "ROLE_VFSC"
+          ) {
+            this.props.navigation.navigate("Chart");
+          }
         }
       }
     } else {

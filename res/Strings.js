@@ -64,4 +64,10 @@ export default {
     using: "Sử dụng",
     detail: "Chi tiết",
     chooseProductionPlan: "Chọn kết hoạch sản xuất",
+    back: "Quay lại",
+    startDate: "Ngày bắt đầu",
+    endDate: "Ngày kết thúc",
+    noSelect: "Không chọn",
+    logOut: "Đăng xuất",    
+    
 }
