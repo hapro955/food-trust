@@ -69,5 +69,7 @@ export default {
     endDate: "Ngày kết thúc",
     noSelect: "Không chọn",
     logOut: "Đăng xuất",    
+    select: "Chọn",
+    see: "Xem",
     
 }

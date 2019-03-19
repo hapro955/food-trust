@@ -57,17 +57,32 @@ export default class ChartContainer extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      fromDate: new Date(),
-      toDate: new Date(),
+      fromDate: "",
+      valueFromDate: new Date(),
+      toDate: "",
+      valueToDate: new Date(2019, 11, 31),
       quantity: [],
       isSelectCity: false,
     };
     console.log("chart");
   }
 
-  async componentWillMount() {}
+  componentWillMount() {
+    let fromDate = new Date();
+    let toDate = new Date(2019, 11, 31);
+    this.setState({
+      fromDate: this._handleDate(fromDate),
+      toDate: this._handleDate(toDate),
+    });
+  }
 
   async componentDidMount() {
+    await this._getQuantity();
+  }
+
+  _getQuantity = async () => {
+    console.log("from date", this.state.fromDate);
+    console.log("to date", this.state.toDate);
     let accessToken = "";
     await TokenLocal.getAccessToken().then(data => {
       accessToken = data;
@@ -80,30 +95,56 @@ export default class ChartContainer extends Component {
         user.roles[0] !== undefined
       ) {
         if (user.roles[0] === "ROLE_VFSC") {
-          let quantityVfsc = await getQuantityVfsc(
-            17032019,
-            31122019,
-            accessToken
-          );
-          this.setState({ quantity: quantityVfsc });
-          console.log(1111, quantityVfsc);
+          this._getQuantityVfsc(accessToken);
         } else if (user.roles[0] === "ROLE_ORG") {
-          let quantityOrg = await getQuantityOrg(
-            17032019,
-            31122019,
-            accessToken
-          );
-          this.setState({ quantity: quantityOrg });
+          this._getQuantityOrg(accessToken);
         } else if (user.roles[0] === "ROLE_GOV") {
-          let quantityGov = await getQuantityGov(
-            17032019,
-            31122019,
-            accessToken
-          );
-          this.setState({ quantity: quantityGov });
+          this._getQuantityGov(accessToken);
         }
       }
     }
+  } 
+
+  _handleDate = (date) => {
+    console.log(date);
+    let day = date.getDate().toString();
+    if(date.getDate() < 10) {
+      day = "0" + date.getDate().toString();
+    }
+    let month = (date.getMonth() + 1).toString();
+    if((date.getMonth() + 1) < 10) {
+      month = "0" + (date.getMonth() + 1).toString();
+    }
+    let year = date.getFullYear().toString();
+    return (day + month + year);
+  }
+
+  _getQuantityVfsc = async (accessToken) => {
+    let quantityVfsc = await getQuantityVfsc(
+      this.state.fromDate,
+      this.state.toDate,
+      accessToken
+    );
+    console.log(quantityVfsc);
+    this.setState({ quantity: quantityVfsc });
+  }
+
+  _getQuantityOrg = async (accessToken) => {
+    let quantityOrg = await getQuantityOrg(
+      this.state.fromDate,
+      this.state.toDate,
+      accessToken
+    );
+    this.setState({ quantity: quantityOrg });
+  }
+
+  _getQuantityGov = async (accessToken) => {
+    let quantityGov = await getQuantityGov(
+      this.state.fromDate,
+      this.state.toDate,
+      accessToken
+    );
+    this.setState({ quantity: quantityGov });
   }
 
   _getHighestQuantity = () => {
@@ -141,7 +182,7 @@ export default class ChartContainer extends Component {
               >
                 <DatePicker
                   style={{ width: "100%" }}
-                  date={this.state.fromDate}
+                  date={this.state.valueFromDate}
                   mode="date"
                   placeholder="select date"
                   format="DD/MM/YYYY"
@@ -160,8 +201,13 @@ export default class ChartContainer extends Component {
                     }
                   }}
                   onDateChange={date => {
-                    this.setState({ fromDate: date });
+                    let day = date.replace("/", "").replace("/","");
+                    this.setState({ 
+                      valueFromDate: date,
+                      fromDate: day 
+                    });
                   }}
+               
                   iconComponent={
                     <View style={{ marginRight: 10 }}>
                       <Icon name="calendar" size={25} color={Color.bgTabBar} />
@@ -184,7 +230,7 @@ export default class ChartContainer extends Component {
               >
                 <DatePicker
                   style={{ width: "100%" }}
-                  date={this.state.toDate}
+                  date={this.state.valueToDate}
                   mode="date"
                   placeholder="select date"
                   format="DD/MM/YYYY"
@@ -203,8 +249,13 @@ export default class ChartContainer extends Component {
                     }
                   }}
                   onDateChange={date => {
-                    this.setState({ fromDate: date });
+                    let day = date.replace("/", "").replace("/","");
+                    this.setState({ 
+                      toDate: day ,
+                      valueToDate: date
+                    });
                   }}
+          
                   iconComponent={
                     <View style={{ marginRight: 10 }}>
                       <Icon name="calendar" size={25} color={Color.bgTabBar} />
@@ -230,8 +281,27 @@ export default class ChartContainer extends Component {
             }}
           >
             <Text style={{fontSize: 14, color: Color.textBrow}}>
-              {" - - " + String.select + " - - "}
+              {" -  -  " + String.select + " -  -  "}
               </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={this._getQuantity}
+            style={{
+              width: "100%",
+              height: 40,
+              borderWidth: 1,
+              borderColor: Color.bdBrow,
+              marginTop: 20,
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: 2,
+              backgroundColor: Color.bgTabBar
+            }}
+          >
+            <Text style={{fontSize: 14, color: Color.textWhite, fontWeight: "bold"}}>
+              {String.see}
+            </Text>
           </TouchableOpacity>
 
           <ScrollView style={{ width: "100%" }}>
@@ -272,27 +342,66 @@ export default class ChartContainer extends Component {
           animationType="slide"
           transparent={true}
           visible={this.state.isSelectCity}
-          >
-          <View style={{flex: 1, backgroundColor: "black", opacity: 0.5, justifyContent: "flex-end"}}>
-            <View style={{width: "100%", height: "50%", backgroundColor: Color.bgWhite}}>
-              <View style={{flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 0.5}}>
-                <TouchableOpacity 
+        >
+          <View style={{ flex: 1, justifyContent: "flex-end" }}>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: "black", 
+                opacity: 0.5,
+                zIndex: 1
+              }}
+            />
+            <View
+              style={{
+                width: "100%",
+                height: "50%",
+                position: "absolute",
+                zIndex: 2,
+                backgroundColor: Color.bgWhite
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  borderBottomWidth: 1,
+                  borderColor: Color.bdBrow
+                }}
+              >
+                <TouchableOpacity
                   onPress={() => {
-                    this.setState({isSelectCity: false});
+                    this.setState({ isSelectCity: false });
                   }}
                   style={{
                     margin: 15
-                  }}>
-                  <Text>
+                  }}
+                >
+                  <Text style={{ fontSize: 14, color: Color.bgTabBar }}>
                     {String.back}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={{margin: 15}}>
-                  <Text>
-                    {String.select}
+                <TouchableOpacity
+                  onPress={() => {
+                    this.setState({
+                      chooseProductionPlan: String.chooseProductionPlan,
+                      isSelectCity: false,
+                      idPlan: 0
+                    });
+                  }}
+                  style={{ margin: 15 }}
+                >
+                  <Text style={{ fontSize: 14, color: "red" }}>
+                    {String.noSelect}
                   </Text>
-                  </TouchableOpacity>
+                </TouchableOpacity>
               </View>
+              {/* <FlatList
+                style={{ width: "100%", height: "100%" }}
+                data={this.state.listPlans}
+                renderItem={this._renderSelectPlan}
+                keyExtractor={(item, index) => `remindWork-${index}`}
+              /> */}
             </View>
           </View>
         </Modal>
